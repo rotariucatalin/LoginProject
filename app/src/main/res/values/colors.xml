@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="defaultColor">#FFFFFF</color>
+    <color name="colorPrimary">#42959a</color>
+    <color name="colorPrimaryDark">#ff42959a</color>
+    <color name="colorAccent">#ff0073</color>
+    <color name="selectedText">#FFFF0073</color>
+    <color name="underLineColor">#aca0a5</color>
+
+    <color name="login_button">#d3e2ea</color>
+    <color name="register_button">#e9f0f4</color>
+
+    <color name="secondary_text">#dfdfdf</color>
+</resources>
