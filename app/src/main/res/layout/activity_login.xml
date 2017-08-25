@@ -8,7 +8,7 @@
     tools:context="com.example.user.test.LoginActivity">
 
     <EditText
-        android:id="@+id/editText"
+        android:id="@+id/username"
         android:layout_width="297dp"
         android:layout_height="56dp"
         android:ems="10"
@@ -33,7 +33,7 @@
         android:layout_marginEnd="8dp" />
 
     <EditText
-        android:id="@+id/editText2"
+        android:id="@+id/password"
         android:layout_width="297dp"
         android:layout_height="56dp"
         android:layout_marginLeft="16dp"
@@ -49,7 +49,7 @@
         app:layout_constraintHorizontal_bias="0.563"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText"
+        app:layout_constraintTop_toBottomOf="@+id/username"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp" />
 
@@ -94,7 +94,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/editText"
+        app:layout_constraintBottom_toTopOf="@+id/username"
         app:layout_constraintVertical_bias="0.371"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"

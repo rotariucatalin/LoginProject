@@ -1,23 +1,47 @@
 package com.example.user.test;
 
-import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class LoginActivity extends AppCompatActivity {
+
+    String password, username;
+    EditText usernameText, passwordText;
+    Button loginButton, registerButton;
+    String[] parameters = new String[2];
+
+    OutputStream outputStream               = null;
+    InputStream inputStream                 = null;
+    HttpURLConnection httpURLConnection     = null;
+
+    MCrypt mCrypt = new MCrypt();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +56,51 @@ public class LoginActivity extends AppCompatActivity {
         getSupportActionBar().hide();
 
         setContentView(R.layout.activity_login);
+
+        usernameText    = (EditText)findViewById(R.id.username);
+        passwordText    = (EditText)findViewById(R.id.password);
+        loginButton     = (Button)findViewById(R.id.loginButton);
+
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                try {
+                    username   = String.valueOf(mCrypt.encrypt(usernameText.getText().toString()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    password   = String.valueOf(mCrypt.encrypt(passwordText.getText().toString()));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                parameters[0]   = username;
+                parameters[1]   = password;
+
+                if(checkCredetntials(parameters))    {
+
+                    AsyncTask loginAsyncTask = new AsyntTaskLogin();
+                    loginAsyncTask.execute(new String[]{username,password});
+
+                } else {
+                    Snackbar.make(findViewById(android.R.id.content), "Please complete all fields", Snackbar.LENGTH_LONG)
+                            .setActionTextColor(Color.RED)
+                            .show();
+                }
+            }
+        });
+    }
+
+    private boolean checkCredetntials(String[] parameters) {
+        int max_lenght = parameters.length - 1;
+        for(int i = 0; i <= max_lenght; i++)
+            if(parameters[i].length() == 0)
+                return false;
+
+        return true;
     }
 
     public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -57,5 +126,87 @@ public class LoginActivity extends AppCompatActivity {
             InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
         }
+    }
+
+    private class AsyntTaskLogin extends AsyncTask<String, Integer, String>  {
+
+        ProgressDialog loginProcessDialog;
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            try {
+                URL url = new URL("http://10.0.2.2/test/index.php");
+                JSONObject loginCredentials = new JSONObject();
+                loginCredentials.put("username", params[0]);
+                loginCredentials.put("password", params[1]);
+                String loginString = loginCredentials.toString();
+
+                httpURLConnection = (HttpURLConnection) url.openConnection();
+                httpURLConnection.setReadTimeout(15000);
+                httpURLConnection.setConnectTimeout(15000);
+                httpURLConnection.setRequestMethod("POST");
+                httpURLConnection.setDoInput(true);
+                httpURLConnection.setDoOutput(true);
+
+                OutputStream os = httpURLConnection.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(
+                        new OutputStreamWriter(os, "UTF-8"));
+                writer.write(loginString);
+
+                writer.flush();
+                writer.close();
+                os.close();
+
+                int result = httpURLConnection.getResponseCode();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }catch (JSONException e) {
+                e.printStackTrace();
+            } finally {
+
+                httpURLConnection.disconnect();
+            }
+
+            return "All Done!";
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            loginProcessDialog=new ProgressDialog(LoginActivity.this);
+            loginProcessDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            loginProcessDialog.setIndeterminate(false);
+            loginProcessDialog.setMax(10000);
+            loginProcessDialog.setMessage("Downloading file...");
+            loginProcessDialog.show();
+            loginProcessDialog.setCancelable(false);
+            loginProcessDialog.setCanceledOnTouchOutside(false);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            loginProcessDialog.dismiss();
+            loginProcessDialog = ProgressDialog.show(LoginActivity.this, "Loading...", result);
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            loginProcessDialog.setProgress(values[0]);
+        }
+
+        @Override
+        protected void onCancelled(String s) {
+            super.onCancelled(s);
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+        }
+
     }
 }
