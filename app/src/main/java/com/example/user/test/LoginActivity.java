@@ -22,9 +22,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
@@ -131,10 +133,14 @@ public class LoginActivity extends AppCompatActivity {
     private class AsyntTaskLogin extends AsyncTask<String, Integer, String>  {
 
         ProgressDialog loginProcessDialog;
+        StringBuilder response  = new StringBuilder();
+        String result;
 
         @Override
         protected String doInBackground(String... params) {
-
+            /*
+            *   Posting the credentials to PHP SERVER
+            * */
             try {
                 URL url = new URL("http://10.0.2.2/test/index.php");
                 JSONObject loginCredentials = new JSONObject();
@@ -158,18 +164,40 @@ public class LoginActivity extends AppCompatActivity {
                 writer.close();
                 os.close();
 
-                int result = httpURLConnection.getResponseCode();
+                /*
+                *   Getting the response from SERVER
+                * */
+                int responseFromServer = httpURLConnection.getResponseCode();
+
+                if (responseFromServer == HttpURLConnection.HTTP_OK)    {
+
+                    /*
+                    *   Reading the output/response from SERVER
+                    * */
+                    BufferedReader input = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                    String strLine = null;
+                    while ((strLine = input.readLine()) != null) {
+                        response.append(strLine);
+                    }
+                    input.close();
+                }
+
+                /*
+                *   Creating the JSON Object and Parse it
+                * */
+                JSONObject reader = new JSONObject(response.toString());
+                result  = reader.getString("username");
+
             }
             catch (IOException e) {
                 e.printStackTrace();
             }catch (JSONException e) {
                 e.printStackTrace();
             } finally {
-
                 httpURLConnection.disconnect();
             }
 
-            return "All Done!";
+            return result;
         }
 
         @Override
