@@ -19,7 +19,7 @@ public class MCrypt {
     private SecretKeySpec keyspec;
     private Cipher cipher;
 
-    private String SecretKey = "0123456789abcdef";//Dummy secretKey (CHANGE IT!)
+    private String SecretKey = "fedcba9876543210";//Dummy secretKey (CHANGE IT!)
 
     public MCrypt()
     {

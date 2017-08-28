@@ -3,11 +3,14 @@ package com.example.user.test;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -16,6 +19,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 import org.json.JSONException;
@@ -24,6 +28,7 @@ import org.json.JSONObject;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -34,16 +39,20 @@ import java.net.URL;
 
 public class LoginActivity extends AppCompatActivity {
 
-    String password, username;
-    EditText usernameText, passwordText;
+    String password, username, credentialsFromServerString;
+    Boolean rememberMeStatment;
+    int idUserFromServer;
+    EditText usernameEditText, passwordEditText;
     Button loginButton, registerButton;
+    CheckBox rememberMe;
     String[] parameters = new String[2];
 
     OutputStream outputStream               = null;
     InputStream inputStream                 = null;
     HttpURLConnection httpURLConnection     = null;
 
-    MCrypt mCrypt = new MCrypt();
+    JSONObject reader               = new JSONObject();
+    JSONObject responseFromserver   = new JSONObject();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,22 +68,35 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_login);
 
-        usernameText    = (EditText)findViewById(R.id.username);
-        passwordText    = (EditText)findViewById(R.id.password);
-        loginButton     = (Button)findViewById(R.id.loginButton);
+        usernameEditText        = (EditText)findViewById(R.id.username);
+        passwordEditText        = (EditText)findViewById(R.id.password);
+        loginButton             = (Button)findViewById(R.id.loginButton);
+        rememberMe              = (CheckBox)findViewById(R.id.remember_me);
+
+        SharedPreferences sharedPref    = getSharedPreferences("Login", Activity.MODE_PRIVATE);
+        String rememberMeSharedPref     = sharedPref.getString("rememberMe", null);
+        String usernameSharedPref       = sharedPref.getString("username", null);
+        String passwordSharedPref       = sharedPref.getString("password", null);
+
+        if(rememberMeSharedPref != null && rememberMeSharedPref.equals("true")) {
+
+            usernameEditText.setText(usernameSharedPref);
+            passwordEditText.setText(passwordSharedPref);
+            rememberMe.setChecked(true);
+        }
 
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                try {
-                    username   = String.valueOf(mCrypt.encrypt(usernameText.getText().toString()));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                rememberMeStatment      = (rememberMe.isChecked()) ? true : false;
 
                 try {
-                    password   = String.valueOf(mCrypt.encrypt(passwordText.getText().toString()));
+/*                    username   = String.valueOf(mCrypt.encrypt(usernameText.getText().toString()));
+                    password   = String.valueOf(mCrypt.encrypt(passwordText.getText().toString()));*/
+
+                    username   = usernameEditText.getText().toString();
+                    password   = passwordEditText.getText().toString();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -85,7 +107,7 @@ public class LoginActivity extends AppCompatActivity {
                 if(checkCredetntials(parameters))    {
 
                     AsyncTask loginAsyncTask = new AsyntTaskLogin();
-                    loginAsyncTask.execute(new String[]{username,password});
+                    loginAsyncTask.execute(new String[]{username,password, String.valueOf(rememberMeStatment)});
 
                 } else {
                     Snackbar.make(findViewById(android.R.id.content), "Please complete all fields", Snackbar.LENGTH_LONG)
@@ -134,16 +156,18 @@ public class LoginActivity extends AppCompatActivity {
 
         ProgressDialog loginProcessDialog;
         StringBuilder response  = new StringBuilder();
-        String result;
+        String success;
 
         @Override
         protected String doInBackground(String... params) {
+
             /*
             *   Posting the credentials to PHP SERVER
             * */
             try {
-                URL url = new URL("http://10.0.2.2/test/index.php");
+                URL url = new URL("http://10.0.2.2/login_project/index.php");
                 JSONObject loginCredentials = new JSONObject();
+                loginCredentials.put("type", "login");
                 loginCredentials.put("username", params[0]);
                 loginCredentials.put("password", params[1]);
                 String loginString = loginCredentials.toString();
@@ -185,8 +209,16 @@ public class LoginActivity extends AppCompatActivity {
                 /*
                 *   Creating the JSON Object and Parse it
                 * */
-                JSONObject reader = new JSONObject(response.toString());
-                result  = reader.getString("username");
+                reader              = new JSONObject(response.toString());
+                success             = reader.getString("success");
+                idUserFromServer    = reader.getInt("id_user");
+
+                JSONObject credentialsFromServer = new JSONObject();
+                credentialsFromServer.put("success", success);
+                credentialsFromServer.put("username", username);
+                credentialsFromServer.put("password", password);
+                credentialsFromServer.put("id_user", idUserFromServer);
+                credentialsFromServerString = credentialsFromServer.toString();
 
             }
             catch (IOException e) {
@@ -197,17 +229,14 @@ public class LoginActivity extends AppCompatActivity {
                 httpURLConnection.disconnect();
             }
 
-            return result;
+            return credentialsFromServerString;
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             loginProcessDialog=new ProgressDialog(LoginActivity.this);
-            loginProcessDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            loginProcessDialog.setIndeterminate(false);
-            loginProcessDialog.setMax(10000);
-            loginProcessDialog.setMessage("Downloading file...");
+            loginProcessDialog.setMessage("Checking credentials");
             loginProcessDialog.show();
             loginProcessDialog.setCancelable(false);
             loginProcessDialog.setCanceledOnTouchOutside(false);
@@ -217,7 +246,37 @@ public class LoginActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
             loginProcessDialog.dismiss();
-            loginProcessDialog = ProgressDialog.show(LoginActivity.this, "Loading...", result);
+
+
+            SharedPreferences sharedPref    = getSharedPreferences("Login", Activity.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+
+            try {
+                responseFromserver      = new JSONObject(result);
+                success                 = responseFromserver.getString("success");
+                idUserFromServer        = responseFromserver.getInt("id_user");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            if(success.equals("1")) {
+                if(rememberMeStatment)  {
+                    editor.putString("username", username);
+                    editor.putString("password", password);
+                }
+
+                editor.putString("rememberMe", rememberMeStatment.toString());
+                editor.commit();
+
+                Intent goToMainAtivity = new Intent(LoginActivity.this, MainActivity.class);
+                goToMainAtivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(goToMainAtivity);
+            } else {
+                /*Snackbar.make(findViewById(android.R.id.content), "Username or password is incorect. Try again!", Snackbar.LENGTH_LONG)
+                        .setActionTextColor(Color.RED)
+                        .show();*/
+            }
         }
 
         @Override
