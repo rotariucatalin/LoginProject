@@ -4,31 +4,25 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,14 +31,11 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class LoginActivity extends AppCompatActivity implements OverallMethods{
+public class RegisterActivity extends AppCompatActivity implements OverallMethods{
 
-    String password, username, credentialsFromServerString;
-    Boolean rememberMeStatment;
-    int idUserFromServer;
-    EditText usernameEditText, passwordEditText;
-    Button loginButton, registerButton;
-    CheckBox rememberMe;
+    Button registerButton;
+    EditText usernameEditText,passwordEditText;
+    String username,password, credentialsFromServerString;
     String[] parameters = new String[2];
 
     OutputStream outputStream               = null;
@@ -66,49 +57,26 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
         //Hide the status bar
         getSupportActionBar().hide();
 
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_register);
 
-        usernameEditText        = (EditText)findViewById(R.id.username);
-        passwordEditText        = (EditText)findViewById(R.id.password);
-        loginButton             = (Button)findViewById(R.id.loginButton);
-        registerButton          = (Button)findViewById(R.id.registerButton);
-        rememberMe              = (CheckBox)findViewById(R.id.remember_me);
+        registerButton      = (Button)findViewById(R.id.registerButton);
+        usernameEditText    = (EditText)findViewById(R.id.username);
+        passwordEditText    = (EditText)findViewById(R.id.password);
 
-        SharedPreferences sharedPref    = getSharedPreferences("Login", Activity.MODE_PRIVATE);
-        String rememberMeSharedPref     = sharedPref.getString("rememberMe", null);
-        String usernameSharedPref       = sharedPref.getString("username", null);
-        String passwordSharedPref       = sharedPref.getString("password", null);
-
-        if(rememberMeSharedPref != null && rememberMeSharedPref.equals("true")) {
-
-            usernameEditText.setText(usernameSharedPref);
-            passwordEditText.setText(passwordSharedPref);
-            rememberMe.setChecked(true);
-        }
-
-        loginButton.setOnClickListener(new View.OnClickListener() {
+        registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                rememberMeStatment      = (rememberMe.isChecked()) ? true : false;
-
-                try {
-/*                    username   = String.valueOf(mCrypt.encrypt(usernameText.getText().toString()));
-                    password   = String.valueOf(mCrypt.encrypt(passwordText.getText().toString()));*/
-
-                    username   = usernameEditText.getText().toString();
-                    password   = passwordEditText.getText().toString();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                username    = usernameEditText.getText().toString();
+                password    = passwordEditText.getText().toString();
 
                 parameters[0]   = username;
                 parameters[1]   = password;
 
-                if(checkCredetntials(parameters))    {
+                if(checkCredetntials(parameters))   {
 
-                    AsyncTask loginAsyncTask = new AsyntTaskLogin();
-                    loginAsyncTask.execute(new String[]{username,password, String.valueOf(rememberMeStatment)});
+                    AsyncTask registerAsyncTask = new RegisterActivity.AsyncTaskRegister();
+                    registerAsyncTask.execute(new String[]{username,password});
 
                 } else {
                     Snackbar.make(findViewById(android.R.id.content), "Please complete all fields", Snackbar.LENGTH_LONG)
@@ -117,61 +85,13 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
                 }
             }
         });
-
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Intent goToRegisterActivity = new Intent(LoginActivity.this, RegisterActivity.class);
-                startActivity(goToRegisterActivity);
-            }
-        });
     }
 
-    @Override
-    public boolean checkCredetntials(String[] parameters) {
-        int max_lenght = parameters.length - 1;
-        for(int i = 0; i <= max_lenght; i++)
-            if(parameters[i].length() == 0)
-                return false;
-
-        return true;
-    }
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        View v = getCurrentFocus();
-
-        if (v != null &&
-                (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_MOVE) &&
-                v instanceof EditText &&
-                !v.getClass().getName().startsWith("android.webkit.")) {
-            int scrcoords[] = new int[2];
-            v.getLocationOnScreen(scrcoords);
-            float x = ev.getRawX() + v.getLeft() - scrcoords[0];
-            float y = ev.getRawY() + v.getTop() - scrcoords[1];
-
-            if (x < v.getLeft() || x > v.getRight() || y < v.getTop() || y > v.getBottom())
-                hideKeyboard(this);
-        }
-        return super.dispatchTouchEvent(ev);
-    }
-
-    @Override
-    public void hideKeyboard(Activity activity) {
-
-        if (activity != null && activity.getWindow() != null && activity.getWindow().getDecorView() != null) {
-            InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
-        }
-
-    }
-
-    private class AsyntTaskLogin extends AsyncTask<String, Integer, String>  {
+    private class AsyncTaskRegister extends AsyncTask<String, Integer, String>  {
 
         ProgressDialog loginProcessDialog;
         StringBuilder response  = new StringBuilder();
-        String success;
+        String success, message;
 
         @Override
         protected String doInBackground(String... params) {
@@ -182,7 +102,7 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
             try {
                 URL url = new URL("http://10.0.2.2/login_project/index.php");
                 JSONObject loginCredentials = new JSONObject();
-                loginCredentials.put("type", "login");
+                loginCredentials.put("type", "register");
                 loginCredentials.put("username", params[0]);
                 loginCredentials.put("password", params[1]);
                 String loginString = loginCredentials.toString();
@@ -226,13 +146,10 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
                 * */
                 reader              = new JSONObject(response.toString());
                 success             = reader.getString("success");
-                idUserFromServer    = reader.getInt("id_user");
+                message             = reader.getString("message");
 
                 JSONObject credentialsFromServer = new JSONObject();
                 credentialsFromServer.put("success", success);
-                credentialsFromServer.put("username", username);
-                credentialsFromServer.put("password", password);
-                credentialsFromServer.put("id_user", idUserFromServer);
                 credentialsFromServerString = credentialsFromServer.toString();
 
             }
@@ -250,8 +167,8 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            loginProcessDialog=new ProgressDialog(LoginActivity.this);
-            loginProcessDialog.setMessage("Checking credentials");
+            loginProcessDialog=new ProgressDialog(RegisterActivity.this);
+            loginProcessDialog.setMessage("Seding credentials");
             loginProcessDialog.show();
             loginProcessDialog.setCancelable(false);
             loginProcessDialog.setCanceledOnTouchOutside(false);
@@ -262,31 +179,30 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
             super.onPostExecute(result);
             loginProcessDialog.dismiss();
 
-
-            SharedPreferences sharedPref    = getSharedPreferences("Login", Activity.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
             try {
                 responseFromserver      = new JSONObject(result);
                 success                 = responseFromserver.getString("success");
-                idUserFromServer        = responseFromserver.getInt("id_user");
+                message                 = responseFromserver.getString("message");
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
 
             if(success.equals("1")) {
-                if(rememberMeStatment)  {
-                    editor.putString("username", username);
-                    editor.putString("password", password);
-                }
 
-                editor.putString("rememberMe", rememberMeStatment.toString());
-                editor.commit();
+                Snackbar.make(findViewById(android.R.id.content), message.toString(), Snackbar.LENGTH_LONG)
+                        .setActionTextColor(Color.RED)
+                        .show();
 
-                Intent goToMainAtivity = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(goToMainAtivity);
+                Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    public void run() {
+                        Intent goToMainAtivity = new Intent(RegisterActivity.this, LoginActivity.class);
+                        startActivity(goToMainAtivity);
+                    }
+                }, 5000);   //5 seconds
             } else if(success.equals("0")) {
-                Snackbar.make(findViewById(android.R.id.content), "Username or password is incorect. Try again!", Snackbar.LENGTH_LONG)
+                Snackbar.make(findViewById(android.R.id.content), message.toString(), Snackbar.LENGTH_LONG)
                         .setActionTextColor(Color.RED)
                         .show();
             }
@@ -295,7 +211,6 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
-            loginProcessDialog.setProgress(values[0]);
         }
 
         @Override
@@ -307,6 +222,43 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
         protected void onCancelled() {
             super.onCancelled();
         }
+    }
 
+    @Override
+    public boolean checkCredetntials(String[] parameters) {
+        int max_lenght = parameters.length - 1;
+        for(int i = 0; i <= max_lenght; i++)
+            if(parameters[i].length() == 0)
+                return false;
+
+        return true;
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        View v = getCurrentFocus();
+
+        if (v != null &&
+                (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_MOVE) &&
+                v instanceof EditText &&
+                !v.getClass().getName().startsWith("android.webkit.")) {
+            int scrcoords[] = new int[2];
+            v.getLocationOnScreen(scrcoords);
+            float x = ev.getRawX() + v.getLeft() - scrcoords[0];
+            float y = ev.getRawY() + v.getTop() - scrcoords[1];
+
+            if (x < v.getLeft() || x > v.getRight() || y < v.getTop() || y > v.getBottom())
+                hideKeyboard(this);
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
+    public void hideKeyboard(Activity activity) {
+
+        if (activity != null && activity.getWindow() != null && activity.getWindow().getDecorView() != null) {
+            InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
+        }
     }
 }
