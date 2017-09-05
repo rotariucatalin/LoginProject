@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/contact_image"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="15dp"
+        android:src="@drawable/ic_people"/>
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_toEndOf="@id/contact_image"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/edit_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nickname"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textColor="#212121"/>
+
+        <TextView
+            android:id="@+id/text_status_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status message"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:textColor="#727272"/>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/nefolosit"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:layout_marginStart="52dp"
+        android:layout_marginTop="38dp"
+        android:padding="6dp"
+        android:textOff=""
+        android:textOn=""
+        />
+
+    <ImageView
+        android:id="@+id/imgbtn_offline"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="47dp"
+        android:layout_marginTop="33dp"
+        android:padding="6dp"
+        android:textOff=""
+        android:textOn=""
+        />
+
+</RelativeLayout>

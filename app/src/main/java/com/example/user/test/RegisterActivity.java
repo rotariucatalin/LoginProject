@@ -31,7 +31,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class RegisterActivity extends AppCompatActivity implements OverallMethods{
+public class RegisterActivity extends AppCompatActivity{
 
     Button registerButton;
     EditText usernameEditText,passwordEditText;
@@ -44,6 +44,8 @@ public class RegisterActivity extends AppCompatActivity implements OverallMethod
 
     JSONObject reader                       = new JSONObject();
     JSONObject responseFromserver           = new JSONObject();
+
+    OverallMethods overallMethods           = new OverallMethods();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +75,7 @@ public class RegisterActivity extends AppCompatActivity implements OverallMethod
                 parameters[0]   = username;
                 parameters[1]   = password;
 
-                if(checkCredetntials(parameters))   {
+                if(overallMethods.checkCredetntials(parameters))   {
 
                     AsyncTask registerAsyncTask = new RegisterActivity.AsyncTaskRegister();
                     registerAsyncTask.execute(new String[]{username,password});
@@ -85,6 +87,24 @@ public class RegisterActivity extends AppCompatActivity implements OverallMethod
                 }
             }
         });
+    }
+
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        View v = getCurrentFocus();
+
+        if (v != null &&
+                (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_MOVE) &&
+                v instanceof EditText &&
+                !v.getClass().getName().startsWith("android.webkit.")) {
+            int scrcoords[] = new int[2];
+            v.getLocationOnScreen(scrcoords);
+            float x = ev.getRawX() + v.getLeft() - scrcoords[0];
+            float y = ev.getRawY() + v.getTop() - scrcoords[1];
+
+            if (x < v.getLeft() || x > v.getRight() || y < v.getTop() || y > v.getBottom())
+                overallMethods.hideKeyboard(this);
+        }
+        return super.dispatchTouchEvent(ev);
     }
 
     private class AsyncTaskRegister extends AsyncTask<String, Integer, String>  {
@@ -200,7 +220,7 @@ public class RegisterActivity extends AppCompatActivity implements OverallMethod
                         Intent goToMainAtivity = new Intent(RegisterActivity.this, LoginActivity.class);
                         startActivity(goToMainAtivity);
                     }
-                }, 5000);   //5 seconds
+                }, 2000);   //5 seconds
             } else if(success.equals("0")) {
                 Snackbar.make(findViewById(android.R.id.content), message.toString(), Snackbar.LENGTH_LONG)
                         .setActionTextColor(Color.RED)
@@ -224,41 +244,4 @@ public class RegisterActivity extends AppCompatActivity implements OverallMethod
         }
     }
 
-    @Override
-    public boolean checkCredetntials(String[] parameters) {
-        int max_lenght = parameters.length - 1;
-        for(int i = 0; i <= max_lenght; i++)
-            if(parameters[i].length() == 0)
-                return false;
-
-        return true;
-    }
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        View v = getCurrentFocus();
-
-        if (v != null &&
-                (ev.getAction() == MotionEvent.ACTION_UP || ev.getAction() == MotionEvent.ACTION_MOVE) &&
-                v instanceof EditText &&
-                !v.getClass().getName().startsWith("android.webkit.")) {
-            int scrcoords[] = new int[2];
-            v.getLocationOnScreen(scrcoords);
-            float x = ev.getRawX() + v.getLeft() - scrcoords[0];
-            float y = ev.getRawY() + v.getTop() - scrcoords[1];
-
-            if (x < v.getLeft() || x > v.getRight() || y < v.getTop() || y > v.getBottom())
-                hideKeyboard(this);
-        }
-        return super.dispatchTouchEvent(ev);
-    }
-
-    @Override
-    public void hideKeyboard(Activity activity) {
-
-        if (activity != null && activity.getWindow() != null && activity.getWindow().getDecorView() != null) {
-            InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
-        }
-    }
 }

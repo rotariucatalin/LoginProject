@@ -6,14 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -25,10 +22,8 @@ import android.widget.EditText;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,7 +32,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class LoginActivity extends AppCompatActivity implements OverallMethods{
+public class LoginActivity extends AppCompatActivity {
 
     String password, username, credentialsFromServerString;
     Boolean rememberMeStatment;
@@ -51,8 +46,12 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
     InputStream inputStream                 = null;
     HttpURLConnection httpURLConnection     = null;
 
+    MotionEvent ev;
+
     JSONObject reader                       = new JSONObject();
     JSONObject responseFromserver           = new JSONObject();
+
+    OverallMethods overallMethods           = new OverallMethods();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +104,7 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
                 parameters[0]   = username;
                 parameters[1]   = password;
 
-                if(checkCredetntials(parameters))    {
+                if(overallMethods.checkCredetntials(parameters))    {
 
                     AsyncTask loginAsyncTask = new AsyntTaskLogin();
                     loginAsyncTask.execute(new String[]{username,password, String.valueOf(rememberMeStatment)});
@@ -128,17 +127,6 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
         });
     }
 
-    @Override
-    public boolean checkCredetntials(String[] parameters) {
-        int max_lenght = parameters.length - 1;
-        for(int i = 0; i <= max_lenght; i++)
-            if(parameters[i].length() == 0)
-                return false;
-
-        return true;
-    }
-
-    @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         View v = getCurrentFocus();
 
@@ -152,19 +140,9 @@ public class LoginActivity extends AppCompatActivity implements OverallMethods{
             float y = ev.getRawY() + v.getTop() - scrcoords[1];
 
             if (x < v.getLeft() || x > v.getRight() || y < v.getTop() || y > v.getBottom())
-                hideKeyboard(this);
+                overallMethods.hideKeyboard(this);
         }
         return super.dispatchTouchEvent(ev);
-    }
-
-    @Override
-    public void hideKeyboard(Activity activity) {
-
-        if (activity != null && activity.getWindow() != null && activity.getWindow().getDecorView() != null) {
-            InputMethodManager imm = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
-        }
-
     }
 
     private class AsyntTaskLogin extends AsyncTask<String, Integer, String>  {
