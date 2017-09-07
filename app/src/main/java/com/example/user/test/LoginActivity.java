@@ -9,8 +9,11 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -32,7 +35,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity{
 
     String password, username, credentialsFromServerString;
     Boolean rememberMeStatment;
@@ -92,8 +95,6 @@ public class LoginActivity extends AppCompatActivity {
                 rememberMeStatment      = (rememberMe.isChecked()) ? true : false;
 
                 try {
-/*                    username   = String.valueOf(mCrypt.encrypt(usernameText.getText().toString()));
-                    password   = String.valueOf(mCrypt.encrypt(passwordText.getText().toString()));*/
 
                     username   = usernameEditText.getText().toString();
                     password   = passwordEditText.getText().toString();
@@ -149,7 +150,7 @@ public class LoginActivity extends AppCompatActivity {
 
         ProgressDialog loginProcessDialog;
         StringBuilder response  = new StringBuilder();
-        String success;
+        String success, userStatus;
 
         @Override
         protected String doInBackground(String... params) {
@@ -204,6 +205,7 @@ public class LoginActivity extends AppCompatActivity {
                 * */
                 reader              = new JSONObject(response.toString());
                 success             = reader.getString("success");
+                userStatus          = reader.getString("user_status");
                 idUserFromServer    = reader.getInt("id_user");
 
                 JSONObject credentialsFromServer = new JSONObject();
