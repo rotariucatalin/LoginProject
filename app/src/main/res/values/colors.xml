@@ -11,4 +11,6 @@
     <color name="register_button">#e9f0f4</color>
 
     <color name="secondary_text">#dfdfdf</color>
+
+    <color name="transparent">#dfdfdf</color>
 </resources>

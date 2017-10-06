@@ -105,7 +105,7 @@ public class Contact {
 
     public String getContactInterestsOther() { return contactInterestsOther; }
 
-    public void setContactInterestsOther(String contactVisibilityList) { this.contactVisibilityList = contactVisibilityList; }
+    public void setContactInterestsOther(String contactInterestsOther) { this.contactInterestsOther = contactInterestsOther; }
 
     public String getContactInterestsRating() { return contactInterestsRating; }
 

@@ -26,18 +26,38 @@
             android:id="@+id/edit_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nickname"
+            android:text="nick"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textColor="#212121"/>
+
+        <!--<TextView-->
+        <!--android:id="@+id/text_company"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/contact_company"-->
+        <!--android:textColor="#727272"/>-->
 
         <TextView
             android:id="@+id/text_status_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Status message"
+            android:text="status"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
             android:textColor="#727272"/>
     </LinearLayout>
+
+    <!--<ImageView-->
+    <!--android:id="@+id/imgbtn_offline"-->
+    <!--android:layout_width="30dp"-->
+    <!--android:layout_height="30dp"-->
+    <!--android:layout_alignParentEnd="true"-->
+    <!--android:layout_alignParentRight="true"-->
+    <!--android:layout_centerVertical="true"-->
+    <!--android:layout_marginRight="10dp"-->
+    <!--android:padding="6dp"-->
+    <!--android:textOff=""-->
+    <!--android:textOn=""-->
+    <!--/>-->
 
     <ImageView
         android:id="@+id/nefolosit"

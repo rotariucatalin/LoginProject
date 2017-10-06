@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/add_friend_sec_menu"
+        android:orderInCategory="100"
+        android:title="Add friend"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/remove_friend_sec_menu"
+        android:orderInCategory="100"
+        android:visible="false"
+        android:title="Remove friend"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/request_profile_sec_menu"
+        android:orderInCategory="100"
+        android:title="Request profile"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/revoke_data_sec_menu"
+        android:orderInCategory="100"
+        android:title="Revoke data visibility"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/block_user_sec_menu"
+        android:orderInCategory="100"
+        android:title="Block user"
+        app:showAsAction="never" />
+</menu>

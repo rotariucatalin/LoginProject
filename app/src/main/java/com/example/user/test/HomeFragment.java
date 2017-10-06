@@ -4,6 +4,8 @@ package com.example.user.test;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,6 +17,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,19 +45,22 @@ public class HomeFragment extends Fragment {
 
     private Context context;
     public ListView listView;
-    public ContacsAdapter contacsAdapter = null;
     private Activity activity;
-    public ArrayList<Contact> contactArrayList = new ArrayList<>();
     public TextView textView;
     private SwipeRefreshLayout swipeRefreshLayout;
     int totalUser;
+    private Contact contact;
+    ProgressDialog StatusProcessDialog;
+    BufferedReader input;
+    TextView no_users;
+    String userID;
 
-    OutputStream outputStream               = null;
-    InputStream inputStream                 = null;
-    HttpURLConnection httpURLConnection     = null;
+    HttpURLConnection httpURLConnection         = null;
+    public ContacsAdapter contacsAdapter        = null;
+    public ArrayList<Contact> contactArrayList  = new ArrayList<>();
 
-    JSONObject reader                       = new JSONObject();
-    JSONObject reader_aux                   = new JSONObject();
+    JSONObject reader                           = new JSONObject();
+    JSONObject reader_aux                       = new JSONObject();
 
     public HomeFragment() {
         // Required empty public constructor
@@ -69,6 +75,22 @@ public class HomeFragment extends Fragment {
         listView            = (ListView) rootView.findViewById(R.id.contacts_list_fragment);
         textView            = (TextView) rootView.findViewById(R.id.no_users);
         swipeRefreshLayout  = (SwipeRefreshLayout) rootView.findViewById(R.id.swipeContainer);
+        no_users            = (TextView) rootView.findViewById(R.id.no_users);
+
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                /*
+                *   Get the current Contact object and get the specific ID
+                * */
+                Contact selectedContact     = contacsAdapter.getItem(position);
+                Intent goToContactProfile   = new Intent(context, FriendActivity.class);
+                goToContactProfile.putExtra("friend_id", selectedContact.getContactId());
+                goToContactProfile.putExtra("current_user_id", userID);
+                startActivity(goToContactProfile);
+            }
+        });
 
         new HomeAsyncTask().execute("","","");
 
@@ -77,6 +99,8 @@ public class HomeFragment extends Fragment {
             @Override
             public void onRefresh() {
                 contacsAdapter  = null;
+                contactArrayList.clear();
+                no_users.setVisibility(View.GONE);
                 listView.setAdapter(contacsAdapter);
 
                 new HomeAsyncTask().execute("","","");
@@ -86,31 +110,28 @@ public class HomeFragment extends Fragment {
         return rootView;
     }
 
-
-
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
 
+        savedInstanceState  = getArguments();
+        if(savedInstanceState.containsKey("userID"))
+            userID              = savedInstanceState.getString("userID");
         super.onCreate(savedInstanceState);
     }
 
     private class HomeAsyncTask extends AsyncTask<String, Integer, String>{
 
-        private Contact contact;
-        private Activity activity;
+        StringBuilder response                      = new StringBuilder();
+        JSONObject sendingInformation               = new JSONObject();
 
         @Override
         protected String doInBackground(String... params) {
-
-            ProgressDialog loginProcessDialog;
-            StringBuilder response  = new StringBuilder();
 
             /*
             *   Posting the credentials to PHP SERVER
             * */
             try {
                 URL url = new URL("http://10.0.2.2/login_project/index.php");
-                JSONObject sendingInformation = new JSONObject();
                 sendingInformation.put("type", "get_all_users");
                 String informationString = sendingInformation.toString();
 
@@ -140,7 +161,7 @@ public class HomeFragment extends Fragment {
                     /*
                     *   Reading the output/response from SERVER
                     * */
-                    BufferedReader input = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                    input = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
                     String strLine = null;
                     while ((strLine = input.readLine()) != null) {
                         response.append(strLine);
@@ -160,12 +181,14 @@ public class HomeFragment extends Fragment {
 
                     reader_aux  = new JSONObject(reader.getString(String.valueOf(i)));
                     contact     = new Contact();
+                    contact.setContactId(reader_aux.getString("id_user"));
                     contact.setContactName(reader_aux.getString("username"));
                     contact.setContactStatusMsg(reader_aux.getString("status_message"));
                     contact.setContactimageString(reader_aux.getString("avatar"));
 
                     contactArrayList.add(contact);
                 }
+
 
             }
             catch (IOException e) {
@@ -181,8 +204,12 @@ public class HomeFragment extends Fragment {
         @Override
         protected void onPreExecute() {
 
-            contactArrayList.clear();
             super.onPreExecute();
+            contactArrayList.clear();
+            StatusProcessDialog=new ProgressDialog(getActivity(), R.style.TransparentProgressDialog);
+            StatusProcessDialog.show();
+            StatusProcessDialog.setCancelable(false);
+            StatusProcessDialog.setCanceledOnTouchOutside(false);
         }
 
         @Override
@@ -192,15 +219,20 @@ public class HomeFragment extends Fragment {
                 listView.setEnabled(true);
             }
 
-            contacsAdapter = new ContacsAdapter(context, R.layout.list_view, contactArrayList);
-            listView.setAdapter(contacsAdapter);
-            swipeRefreshLayout.setRefreshing(false);
+            if(contactArrayList.size() > 0) {
 
+                no_users.setVisibility(View.GONE);
+                contacsAdapter = new ContacsAdapter(context, R.layout.list_view, contactArrayList);
+                listView.setAdapter(contacsAdapter);
+            } else {
+                no_users.setVisibility(View.VISIBLE);
+            }
+            swipeRefreshLayout.setRefreshing(false);
+            StatusProcessDialog.dismiss();
         }
 
         @Override
         protected void onProgressUpdate(Integer... values) {
-
             super.onProgressUpdate(values);
         }
 

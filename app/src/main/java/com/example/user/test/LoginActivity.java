@@ -49,7 +49,6 @@ public class LoginActivity extends AppCompatActivity{
     InputStream inputStream                 = null;
     HttpURLConnection httpURLConnection     = null;
 
-    MotionEvent ev;
 
     JSONObject reader                       = new JSONObject();
     JSONObject responseFromserver           = new JSONObject();
@@ -64,6 +63,11 @@ public class LoginActivity extends AppCompatActivity{
             getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                     WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
+
+        //overallMethods.setImmersiveMode(LoginActivity.this);
+
+        final View decorView = getWindow().getDecorView();
+        overallMethods.UiChangeListener(decorView);
 
         //Hide the status bar
         getSupportActionBar().hide();
@@ -126,6 +130,13 @@ public class LoginActivity extends AppCompatActivity{
                 startActivity(goToRegisterActivity);
             }
         });
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        overallMethods.setImmersiveMode(LoginActivity.this);
     }
 
     public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -264,6 +275,7 @@ public class LoginActivity extends AppCompatActivity{
                 editor.commit();
 
                 Intent goToMainAtivity = new Intent(LoginActivity.this, MainActivity.class);
+                goToMainAtivity.putExtra("userID", String.valueOf(idUserFromServer));
                 startActivity(goToMainAtivity);
             } else if(success.equals("0")) {
                 Snackbar.make(findViewById(android.R.id.content), "Username or password is incorect. Try again!", Snackbar.LENGTH_LONG)
